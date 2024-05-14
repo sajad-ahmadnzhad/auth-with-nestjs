@@ -4,7 +4,7 @@ import { MongooseModule } from "@nestjs/mongoose";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { CacheModule } from "@nestjs/cache-manager";
 import { redisStore } from "cache-manager-redis-yet";
-import { APP_PIPE } from "@nestjs/core";
+import { APP_PIPE} from "@nestjs/core";
 
 @Module({
   imports: [
@@ -15,7 +15,10 @@ import { APP_PIPE } from "@nestjs/core";
       }),
       inject: [ConfigService],
     }),
-    ConfigModule.forRoot({ isGlobal: true, envFilePath: ".env.development" }),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: `.env.${process.env.NODE_ENV}`,
+    }),
     CacheModule.registerAsync({
       isGlobal: true,
       inject: [ConfigService],
