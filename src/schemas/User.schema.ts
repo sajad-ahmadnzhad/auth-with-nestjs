@@ -1,4 +1,4 @@
-import { Prop } from "@nestjs/mongoose";
+import { Prop, SchemaFactory } from "@nestjs/mongoose";
 
 export class User {
   @Prop({ type: String, required: true })
@@ -28,3 +28,5 @@ export class User {
   @Prop({ type: Boolean, default: false })
   isVerifyEmail: boolean;
 }
+
+export const UserSchema = SchemaFactory.createForClass(User);
