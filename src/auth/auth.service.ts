@@ -20,6 +20,8 @@ import { RedisCache } from "cache-manager-redis-yet";
 import { SigninUserDto } from "./dto/signinUser.dot";
 import { ForgotPasswordDto } from "./dto/forgotPassword.dto";
 import { Token } from "src/schemas/token.schema";
+import { randomBytes } from "crypto";
+import { MailerService } from "@nestjs-modules/mailer";
 
 @Injectable()
 export class AuthService {
@@ -27,7 +29,8 @@ export class AuthService {
     @InjectModel(User.name) private userModel: Model<User>,
     private jwtService: JwtService,
     @Inject(CACHE_MANAGER) private redisCache: RedisCache,
-    @InjectModel(Token.name) private tokenModel: Model<Token>
+    @InjectModel(Token.name) private tokenModel: Model<Token>,
+    private mailerService: MailerService
   ) {}
 
   private hashData(data: string, salt: number) {
@@ -164,4 +167,47 @@ export class AuthService {
     return AuthMessages.SignoutSuccess;
   }
 
+  async forgotPassword(dto: ForgotPasswordDto) {
+    const existingUser = await this.userModel.findOne({ email: dto.email });
+
+    if (!existingUser) {
+      throw new NotFoundException(AuthMessages.NotFoundUser);
+    }
+
+    if (existingUser.isVerifyEmail) {
+      throw new ConflictException(AuthMessages.AlreadyVerifyEmail);
+    }
+
+    const existingToken = await this.tokenModel.findOne({
+      userId: existingUser._id,
+    });
+
+    if (existingToken) {
+      throw new ConflictException(AuthMessages.AlreadySendMail);
+    }
+
+    const token = await this.tokenModel.create({
+      userId: existingUser._id,
+      token: randomBytes(32).toString("hex"),
+    });
+
+    const mailOptions = {
+      from: process.env.GMAIL_USER as string,
+      to: existingUser.email,
+      subject: "reset your password",
+      html: `<p>Link to reset your password:</p>
+      <h1>Click on the link below to reset your password</h1>
+      <h2>${process.env.BASE_URL}/v1/auth/${existingUser._id}/reset-password/${token.token}</h2>
+       `,
+    };
+
+    try {
+      await this.mailerService.sendMail(mailOptions);
+    } catch (error) {
+      await token.deleteOne();
+      throw error;
+    }
+
+    return AuthMessages.SendedResetPassword;
+  }
 }
