@@ -11,4 +11,6 @@ export enum AuthMessages {
   AlreadyVerifyEmail = "This email already verified",
   SendedResetPassword = "The password reset link has been sent to your email",
   AlreadySendMail = "An email has already been sent to you. Please try again in 10 minutes",
+  ResetPasswordSuccess = "Password rested successfully",
+  NotFoundToken = "Token not found",
 }

@@ -4,6 +4,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Param,
   Post,
   Req,
   Res,
@@ -15,6 +16,7 @@ import { Request, Response } from "express";
 import { SigninUserDto } from "./dto/signinUser.dot";
 import { AuthGuard } from "src/guards/Auth.guard";
 import { ForgotPasswordDto } from "./dto/forgotPassword.dto";
+import { ResetPasswordDto } from "./dto/resetPassword.dto";
 
 @Controller("auth")
 export class AuthController {
@@ -76,6 +78,17 @@ export class AuthController {
   async forgotPassword(@Body() body: ForgotPasswordDto) {
     const success = await this.authService.forgotPassword(body);
 
+    return { message: success };
+  }
+
+  @Post(":userId/reset-password/:token")
+  async resetPassword(
+    @Body() body: ResetPasswordDto,
+    @Param("userId") userId: string,
+    @Param("token") token: string
+  ) {
+    const success = await this.authService.resetPassword(body, userId, token);
+    
     return { message: success };
   }
 }

@@ -22,6 +22,7 @@ import { ForgotPasswordDto } from "./dto/forgotPassword.dto";
 import { Token } from "src/schemas/token.schema";
 import { randomBytes } from "crypto";
 import { MailerService } from "@nestjs-modules/mailer";
+import { ResetPasswordDto } from "./dto/resetPassword.dto";
 
 @Injectable()
 export class AuthService {
@@ -197,7 +198,7 @@ export class AuthService {
       subject: "reset your password",
       html: `<p>Link to reset your password:</p>
       <h1>Click on the link below to reset your password</h1>
-      <h2>${process.env.BASE_URL}/v1/auth/${existingUser._id}/reset-password/${token.token}</h2>
+      <h2>${process.env.BASE_URL}/auth/${existingUser._id}/reset-password/${token.token}</h2>
        `,
     };
 
@@ -209,5 +210,24 @@ export class AuthService {
     }
 
     return AuthMessages.SendedResetPassword;
+  }
+
+  async resetPassword(dto: ResetPasswordDto, userId: string, token: string) {
+    const existingToken = await this.tokenModel.findOne({ token });
+
+    if (!existingToken) {
+      throw new NotFoundException(AuthMessages.NotFoundToken);
+    }
+
+    const hashPassword = this.hashData(dto.password, 12);
+
+    await this.userModel.findOneAndUpdate(
+      { _id: userId },
+      { password: hashPassword }
+    );
+
+    await existingToken.deleteOne();
+
+    return AuthMessages.ResetPasswordSuccess;
   }
 }

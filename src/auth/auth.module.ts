@@ -6,9 +6,8 @@ import { User, UserSchema } from "src/schemas/User.schema";
 import { JwtModule } from "@nestjs/jwt";
 import { Token, TokenSchema } from "src/schemas/token.schema";
 import { MailerModule } from "@nestjs-modules/mailer";
-import { ConfigModule, ConfigService } from "@nestjs/config";
+import { ConfigService } from "@nestjs/config";
 
-console.log(process.env.PORT);
 @Module({
   imports: [
     MongooseModule.forFeature([
