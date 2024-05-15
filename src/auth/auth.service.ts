@@ -271,6 +271,32 @@ export class AuthService {
       throw error;
     }
 
-    return AuthMessages.VerifyEmailSuccess;
+    return AuthMessages.SendVerifyEmailSuccess;
+  }
+
+  async verifyEmail(userId: string, token: string) {
+    const existingToken = await this.tokenModel.findOne({ token });
+
+    if (!existingToken) {
+      throw new NotFoundException(AuthMessages.NotFoundToken);
+    }
+
+    const user = await this.userModel.findById(userId);
+
+    if (!user) {
+      throw new NotFoundException(AuthMessages.NotFoundUser);
+    }
+
+    if (user.isVerifyEmail) {
+      throw new ConflictException(AuthMessages.AlreadyVerifyEmail);
+    }
+
+    await user.updateOne({
+      isVerifyEmail: true,
+    });
+
+    await existingToken.deleteOne();
+
+    return AuthMessages.verifiedEmailSuccess;
   }
 }

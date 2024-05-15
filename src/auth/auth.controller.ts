@@ -101,4 +101,14 @@ export class AuthController {
 
     return { message: success };
   }
+
+  @Get(":userId/verify/:token")
+  async verifyEmail(
+    @Param("userId") userId: string,
+    @Param("token") token: string
+  ) {
+    const success = await this.authService.verifyEmail(userId, token);
+
+    return { message: success };
+  }
 }
