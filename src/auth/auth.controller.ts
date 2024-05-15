@@ -17,6 +17,7 @@ import { SigninUserDto } from "./dto/signinUser.dot";
 import { AuthGuard } from "src/guards/Auth.guard";
 import { ForgotPasswordDto } from "./dto/forgotPassword.dto";
 import { ResetPasswordDto } from "./dto/resetPassword.dto";
+import { SendVerifyEmailDto } from "./dto/sendVerifyEmail.dto";
 
 @Controller("auth")
 export class AuthController {
@@ -82,13 +83,22 @@ export class AuthController {
   }
 
   @Post(":userId/reset-password/:token")
+  @HttpCode(HttpStatus.OK)
   async resetPassword(
     @Body() body: ResetPasswordDto,
     @Param("userId") userId: string,
     @Param("token") token: string
   ) {
     const success = await this.authService.resetPassword(body, userId, token);
-    
+
+    return { message: success };
+  }
+
+  @Post("verify-email")
+  @HttpCode(HttpStatus.OK)
+  async sendVerifyMail(@Body() body: SendVerifyEmailDto) {
+    const success = await this.authService.sendVerifyEmail(body);
+
     return { message: success };
   }
 }

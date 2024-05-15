@@ -23,6 +23,8 @@ import { Token } from "src/schemas/token.schema";
 import { randomBytes } from "crypto";
 import { MailerService } from "@nestjs-modules/mailer";
 import { ResetPasswordDto } from "./dto/resetPassword.dto";
+import { SendVerifyEmailDto } from "./dto/sendVerifyEmail.dto";
+import { ConfigService } from "@nestjs/config";
 
 @Injectable()
 export class AuthService {
@@ -31,7 +33,8 @@ export class AuthService {
     private jwtService: JwtService,
     @Inject(CACHE_MANAGER) private redisCache: RedisCache,
     @InjectModel(Token.name) private tokenModel: Model<Token>,
-    private mailerService: MailerService
+    private mailerService: MailerService,
+    private configService: ConfigService
   ) {}
 
   private hashData(data: string, salt: number) {
@@ -73,14 +76,14 @@ export class AuthService {
 
     const accessToken = this.generateToken(
       { id: user._id.toString() },
-      process.env.ACCESS_TOKEN_EXPIRE_TIME,
-      process.env.ACCESS_TOKEN_SECRET
+      this.configService.get<string>("ACCESS_TOKEN_EXPIRE_TIME"),
+      this.configService.get<string>("ACCESS_TOKEN_SECRET")
     );
 
     const refreshToken = this.generateToken(
       { id: user._id.toString() },
-      process.env.REFRESH_TOKEN_EXPIRE_TIME,
-      process.env.REFRESH_TOKEN_SECRET
+      this.configService.get<string>("REFRESH_TOKEN_EXPIRE_TIME"),
+      this.configService.get<string>("REFRESH_TOKEN_SECRET")
     );
 
     await this.redisCache.set(user._id.toString(), refreshToken);
@@ -108,14 +111,14 @@ export class AuthService {
     }
     const accessToken = this.generateToken(
       { id: user._id.toString() },
-      process.env.ACCESS_TOKEN_EXPIRE_TIME,
-      process.env.ACCESS_TOKEN_SECRET
+      this.configService.get<string>("ACCESS_TOKEN_EXPIRE_TIME"),
+      this.configService.get<string>("ACCESS_TOKEN_SECRET")
     );
 
     const refreshToken = this.generateToken(
       { id: user._id.toString() },
-      process.env.REFRESH_TOKEN_EXPIRE_TIME,
-      process.env.REFRESH_TOKEN_SECRET
+      this.configService.get<string>("REFRESH_TOKEN_EXPIRE_TIME"),
+      this.configService.get<string>("REFRESH_TOKEN_SECRET")
     );
 
     await this.redisCache.set(user._id.toString(), refreshToken);
@@ -138,7 +141,7 @@ export class AuthService {
 
     try {
       this.jwtService.verify(refreshToken, {
-        secret: process.env.REFRESH_TOKEN_SECRET,
+        secret: this.configService.get<string>("REFRESH_TOKEN_SECRET"),
       });
     } catch (error: any) {
       throw new InternalServerErrorException(error.message);
@@ -146,8 +149,8 @@ export class AuthService {
 
     const newAccessToken = this.generateToken(
       { id: decodeToken.id },
-      process.env.ACCESS_TOKEN_EXPIRE_TIME,
-      process.env.ACCESS_TOKEN_SECRET
+      this.configService.get<string>("ACCESS_TOKEN_EXPIRE_TIME"),
+      this.configService.get<string>("ACCESS_TOKEN_SECRET")
     );
 
     return {
@@ -175,10 +178,6 @@ export class AuthService {
       throw new NotFoundException(AuthMessages.NotFoundUser);
     }
 
-    if (existingUser.isVerifyEmail) {
-      throw new ConflictException(AuthMessages.AlreadyVerifyEmail);
-    }
-
     const existingToken = await this.tokenModel.findOne({
       userId: existingUser._id,
     });
@@ -193,12 +192,12 @@ export class AuthService {
     });
 
     const mailOptions = {
-      from: process.env.GMAIL_USER as string,
+      from: this.configService.get<string>("GMAIL_USER"),
       to: existingUser.email,
       subject: "reset your password",
       html: `<p>Link to reset your password:</p>
       <h1>Click on the link below to reset your password</h1>
-      <h2>${process.env.BASE_URL}/auth/${existingUser._id}/reset-password/${token.token}</h2>
+      <h2>${this.configService.get<string>("BASE_URL")}/auth/${existingUser._id}/reset-password/${token.token}</h2>
        `,
     };
 
@@ -229,5 +228,49 @@ export class AuthService {
     await existingToken.deleteOne();
 
     return AuthMessages.ResetPasswordSuccess;
+  }
+
+  async sendVerifyEmail(dto: SendVerifyEmailDto) {
+    const user = await this.userModel.findOne({ email: dto.email });
+
+    if (!user) {
+      throw new NotFoundException(AuthMessages.NotFoundUser);
+    }
+
+    if (user.isVerifyEmail) {
+      throw new ConflictException(AuthMessages.AlreadyVerifyEmail);
+    }
+
+    const existingToken = await this.tokenModel.findOne({
+      userId: user._id,
+    });
+
+    if (existingToken) {
+      throw new ConflictException(AuthMessages.AlreadySendMail);
+    }
+
+    const token = await this.tokenModel.create({
+      userId: user._id,
+      token: randomBytes(32).toString("hex"),
+    });
+
+    const url = `${this.configService.get<string>("BASE_URL")}/auth/${user._id}/verify/${token.token}`;
+
+    const mailOptions = {
+      from: process.env.GMAIL_USER as string,
+      to: user.email,
+      subject: "Email confirmation",
+      html: `<p>Click on the link below to confirm the email:</p>
+       <h1>${url}</h1>`,
+    };
+
+    try {
+      await this.mailerService.sendMail(mailOptions);
+    } catch (error) {
+      await token.deleteOne();
+      throw error;
+    }
+
+    return AuthMessages.VerifyEmailSuccess;
   }
 }
