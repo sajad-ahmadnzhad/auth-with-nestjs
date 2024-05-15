@@ -1,16 +1,20 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
   Post,
   Req,
   Res,
+  UseGuards,
 } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { SignupUserDto } from "./dto/signupUser.dto";
 import { Request, Response } from "express";
 import { SigninUserDto } from "./dto/signinUser.dot";
+import { AuthGuard } from "src/guards/Auth.guard";
+import { ForgotPasswordDto } from "./dto/forgotPassword.dto";
 
 @Controller("auth")
 export class AuthController {
@@ -52,5 +56,24 @@ export class AuthController {
     res.cookie("accessToken", newAccessToken);
 
     return { message: success };
+  }
+
+  @Get("signout")
+  @UseGuards(AuthGuard)
+  async signout(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response
+  ) {
+    const { accessToken } = req.cookies || {};
+    const success = await this.authService.signout(accessToken);
+    res.clearCookie("accessToken");
+    console.log(req.user);
+    return { message: success };
+  }
+
+  @Post("forgot-password")
+  @HttpCode(HttpStatus.OK)
+  forgotPassword(@Body() body: ForgotPasswordDto) {
+    
   }
 }

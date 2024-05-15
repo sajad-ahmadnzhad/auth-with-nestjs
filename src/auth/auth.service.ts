@@ -18,13 +18,16 @@ import { RefreshToken, SigninUser, SignupUser } from "./auth.interface";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { RedisCache } from "cache-manager-redis-yet";
 import { SigninUserDto } from "./dto/signinUser.dot";
+import { ForgotPasswordDto } from "./dto/forgotPassword.dto";
+import { Token } from "src/schemas/token.schema";
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectModel(User.name) private userModel: Model<User>,
     private jwtService: JwtService,
-    @Inject(CACHE_MANAGER) private redisCache: RedisCache
+    @Inject(CACHE_MANAGER) private redisCache: RedisCache,
+    @InjectModel(Token.name) private tokenModel: Model<Token>
   ) {}
 
   private hashData(data: string, salt: number) {
@@ -84,9 +87,11 @@ export class AuthService {
   async signinUser(dto: SigninUserDto): Promise<SigninUser> {
     const { identifier, password } = dto;
 
-    const user = await this.userModel.findOne({
-      $or: [{ email: identifier }, { username: identifier }],
-    });
+    const user = await this.userModel
+      .findOne({
+        $or: [{ email: identifier }, { username: identifier }],
+      })
+      .select("password");
 
     if (!user) {
       throw new NotFoundException(AuthMessages.NotFoundUser);
@@ -146,4 +151,17 @@ export class AuthService {
       success: AuthMessages.RefreshTokenSuccess,
     };
   }
+
+  async signout(accessToken: string): Promise<string> {
+    const decodeToken = this.jwtService.decode<{ id: string }>(accessToken);
+
+    if (!decodeToken) {
+      throw new BadRequestException(AuthMessages.InvalidAccessToken);
+    }
+
+    await this.redisCache.del(decodeToken.id);
+
+    return AuthMessages.SignoutSuccess;
+  }
+
 }
