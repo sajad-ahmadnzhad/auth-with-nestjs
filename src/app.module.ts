@@ -5,19 +5,21 @@ import { ConfigModule, ConfigService } from "@nestjs/config";
 import { CacheModule } from "@nestjs/cache-manager";
 import { redisStore } from "cache-manager-redis-yet";
 import { APP_PIPE } from "@nestjs/core";
+import './app.interface'
+
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: process.cwd() + `/.env.${process.env.NODE_ENV}`,
+    }),
     AuthModule,
     MongooseModule.forRootAsync({
       useFactory: (config: ConfigService) => ({
         uri: config.get<string>("MONGODB_URI"),
       }),
       inject: [ConfigService],
-    }),
-    ConfigModule.forRoot({
-      isGlobal: true,
-      envFilePath: `.env.${process.env.NODE_ENV}`,
     }),
     CacheModule.registerAsync({
       isGlobal: true,
@@ -37,4 +39,4 @@ import { APP_PIPE } from "@nestjs/core";
     { provide: APP_PIPE, useValue: new ValidationPipe({ whitelist: true }) },
   ],
 })
-export class AppModule {}
+export class AppModule { }
