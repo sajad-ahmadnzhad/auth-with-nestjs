@@ -4,12 +4,12 @@ import { MongooseModule } from "@nestjs/mongoose";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { CacheModule } from "@nestjs/cache-manager";
 import { redisStore } from "cache-manager-redis-yet";
-import { APP_PIPE } from "@nestjs/core";
-import './app.interface'
-
+import { APP_GUARD, APP_PIPE } from "@nestjs/core";
+import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
 
 @Module({
   imports: [
+    ThrottlerModule.forRoot([{ ttl: 60_000, limit: 50 }]),
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: process.cwd() + `/.env.${process.env.NODE_ENV}`,
@@ -37,6 +37,7 @@ import './app.interface'
   ],
   providers: [
     { provide: APP_PIPE, useValue: new ValidationPipe({ whitelist: true }) },
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
   ],
 })
-export class AppModule { }
+export class AppModule {}

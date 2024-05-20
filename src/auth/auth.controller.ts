@@ -18,11 +18,12 @@ import { AuthGuard } from "src/guards/Auth.guard";
 import { ForgotPasswordDto } from "./dto/forgotPassword.dto";
 import { ResetPasswordDto } from "./dto/resetPassword.dto";
 import { SendVerifyEmailDto } from "./dto/sendVerifyEmail.dto";
+import { Throttle } from "@nestjs/throttler";
 
+@Throttle({default: {ttl: 60_000  , limit: 3}})
 @Controller("auth")
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
-
   @Post("signup")
   async signup(
     @Body() body: SignupUserDto,
