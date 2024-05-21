@@ -14,12 +14,19 @@ import { User } from "src/schemas/User.schema";
 import { IsAdminGuard } from "src/guards/isAdmin.guard";
 import { AuthGuard } from "src/guards/Auth.guard";
 import { IsValidObjectIdPipe } from "./pipes/isValidObjectId.pipe";
+import { UserDecorator } from "./decorators/user.decorator";
 
 @Controller("users")
 @ApiTags("users")
 @ApiCookieAuth()
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
+
+  @Get("me")
+  @UseGuards(AuthGuard)
+  getMe(@UserDecorator() user: User) {
+    return user;
+  }
 
   @Get()
   @UseGuards(AuthGuard, IsAdminGuard)
