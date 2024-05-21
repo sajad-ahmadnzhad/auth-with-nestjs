@@ -13,6 +13,7 @@ import { ApiCookieAuth, ApiTags } from "@nestjs/swagger";
 import { User } from "src/schemas/User.schema";
 import { IsAdminGuard } from "src/guards/isAdmin.guard";
 import { AuthGuard } from "src/guards/Auth.guard";
+import { IsValidObjectIdPipe } from "./pipes/isValidObjectId.pipe";
 
 @Controller("users")
 @ApiTags("users")
@@ -22,13 +23,14 @@ export class UsersController {
 
   @Get()
   @UseGuards(AuthGuard, IsAdminGuard)
-  findAll(): Promise<Array<User>> {
-    return this.usersService.findAll();
+  findAllUsers(): Promise<Array<User>> {
+    return this.usersService.findAllUsers();
   }
 
   @Get(":id")
-  findOne(@Param("id") id: string) {
-    return this.usersService.findOne(+id);
+  @UseGuards(AuthGuard, IsAdminGuard)
+  findUser(@Param("id", IsValidObjectIdPipe) id: string) {
+    return this.usersService.findUser(id);
   }
 
   @Patch(":id")

@@ -1,4 +1,4 @@
-import { Inject, Injectable } from "@nestjs/common";
+import { Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { CreateUserDto } from "./dto/create-user.dto";
 import { UpdateUserDto } from "./dto/update-user.dto";
 import { InjectModel } from "@nestjs/mongoose";
@@ -6,6 +6,7 @@ import { User, UserSchema } from "src/schemas/User.schema";
 import { Model } from "mongoose";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { RedisCache } from "cache-manager-redis-yet";
+import { UsersMessages } from "./users.mesage";
 
 @Injectable()
 export class UsersService {
@@ -14,7 +15,7 @@ export class UsersService {
     @Inject(CACHE_MANAGER) private redisCache: RedisCache
   ) {}
 
-  async findAll(): Promise<Array<User>> {
+  async findAllUsers(): Promise<Array<User>> {
     const usersCache: User[] = await this.redisCache.get("users");
 
     if (usersCache) return usersCache;
@@ -26,8 +27,14 @@ export class UsersService {
     return this.usersModel.find();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  async findUser(userId: string) {
+    const user = await this.usersModel.findById(userId);
+
+    if (!user) {
+      throw new NotFoundException(UsersMessages.NotFound);
+    }
+
+    return user;
   }
 
   update(id: number, updateUserDto: UpdateUserDto) {
