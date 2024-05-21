@@ -21,6 +21,7 @@ async function bootstrap() {
     .setVersion("1.0")
     .addCookieAuth("accessToken", { type: "http" })
     .addTag("auth")
+    .addTag('users')
     .build();
 
   const document = SwaggerModule.createDocument(app, swaggerConfig);
