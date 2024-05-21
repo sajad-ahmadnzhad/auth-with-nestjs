@@ -18,6 +18,7 @@ import {
   VerifyEmailDecorator,
   SignUpUserDecorator,
 } from "./decorators/auth.decorator";
+
 @Throttle({ default: { ttl: 60_000, limit: 3 } })
 @ApiTags("auth")
 @Controller("auth")
