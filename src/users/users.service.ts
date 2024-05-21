@@ -36,8 +36,14 @@ export class UsersService {
     return user;
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async update(id: string, updateUserDto: UpdateUserDto) {
+    const user = await this.usersModel.findById(id);
+
+    if (!user) throw new NotFoundException(UsersMessages.NotFound);
+
+    await user.updateOne({ $set: updateUserDto });
+
+    return UsersMessages.UpdatedSuccess;
   }
 
   remove(id: number) {

@@ -34,15 +34,20 @@ export class UsersController {
     return this.usersService.findAllUsers();
   }
 
-  @Get(":id")
+  @Get(":userId")
   @UseGuards(AuthGuard, IsAdminGuard)
-  findUser(@Param("id", IsValidObjectIdPipe) id: string) {
-    return this.usersService.findUser(id);
+  findUser(@Param("userId", IsValidObjectIdPipe) userId: string) {
+    return this.usersService.findUser(userId);
   }
 
-  @Patch(":id")
-  update(@Param("id") id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(+id, updateUserDto);
+  @Patch(":userId")
+  async update(
+    @Param("userId", IsValidObjectIdPipe) userId: string,
+    @Body() updateUserDto: UpdateUserDto
+  ): Promise<{ message: string }> {
+    const success = await this.usersService.update(userId, updateUserDto);
+
+    return { message: success };
   }
 
   @Delete(":id")
