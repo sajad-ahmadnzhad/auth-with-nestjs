@@ -21,7 +21,7 @@ export class User {
   avatarURL: string;
 
   @Prop({ type: Boolean, default: false })
-  isAdmin: string;
+  isAdmin: boolean;
 
   @Prop({ type: Boolean, default: false })
   isSuperAdmin: boolean;
