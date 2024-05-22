@@ -1,7 +1,12 @@
-import { Inject, Injectable, NotFoundException } from "@nestjs/common";
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 import { UpdateUserDto } from "./dto/update-user.dto";
 import { InjectModel } from "@nestjs/mongoose";
-import { User, UserSchema } from "src/schemas/User.schema";
+import { User } from "src/schemas/User.schema";
 import { Model } from "mongoose";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { RedisCache } from "cache-manager-redis-yet";
@@ -55,10 +60,20 @@ export class UsersService {
     return UsersMessages.UpdatedSuccess;
   }
 
-  async removeUser(userId: string): Promise<string> {
-    const user = await this.usersModel.findById(userId);
+  async removeUser(userId: string, user: User): Promise<string> {
+    const foundUser = await this.usersModel.findById(userId);
 
-    if (!user) throw new NotFoundException(UsersMessages.NotFound);
+    if (!foundUser) throw new NotFoundException(UsersMessages.NotFound);
+
+    if ((foundUser.isAdmin && !user.isSuperAdmin) || foundUser.isAdmin) {
+      throw new BadRequestException(UsersMessages.CannotRemoveAdmin);
+    }
+
+    if (foundUser.isSuperAdmin) {
+      throw new BadRequestException(UsersMessages.CannotRemoveSuperAdmin);
+    }
+
+    await foundUser.deleteOne();
 
     return UsersMessages.RemovedSuccess;
   }

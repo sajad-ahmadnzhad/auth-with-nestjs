@@ -1,6 +1,6 @@
 .env.dev
 .env.prod
-
+public
 # compiled output
 /dist
 /node_modules

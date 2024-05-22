@@ -84,9 +84,10 @@ export class UsersController {
   @Delete(":userId")
   @UseGuards(AuthGuard, IsAdminGuard)
   async removeUser(
-    @Param("userId", IsValidObjectIdPipe) userId: string
+    @Param("userId", IsValidObjectIdPipe) userId: string,
+    @UserDecorator() user: User
   ): Promise<{ message: string }> {
-    const success = await this.usersService.removeUser(userId);
+    const success = await this.usersService.removeUser(userId , user);
 
     return { message: success };
   }
