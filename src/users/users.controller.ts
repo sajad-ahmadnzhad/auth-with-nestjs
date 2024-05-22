@@ -16,12 +16,19 @@ import { User } from "src/schemas/User.schema";
 import { IsAdminGuard } from "src/guards/isAdmin.guard";
 import { AuthGuard } from "src/guards/Auth.guard";
 import { IsValidObjectIdPipe } from "./pipes/isValidObjectId.pipe";
-import { UserDecorator } from "./decorators/user.decorator";
+import { UserDecorator } from "./decorators/currentUser.decorator";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { Express } from "express";
 import { UserAvatarPipe } from "./pipes/user-avatar.pipe";
 import { diskStorage } from "multer";
 import * as path from "path";
+import {
+  GetAllUsersDecorator,
+  GetMeDecorator,
+  GetOneUserDecorator,
+  RemoveUserDecorator,
+  UpdateUserDecorator,
+} from "./decorators/users.decorator";
 
 @Controller("users")
 @ApiTags("users")
@@ -30,19 +37,19 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get("me")
-  @UseGuards(AuthGuard)
+  @GetMeDecorator
   getMe(@UserDecorator() user: User): User {
     return user;
   }
 
   @Get()
-  @UseGuards(AuthGuard, IsAdminGuard)
+  @GetAllUsersDecorator
   findAllUsers(): Promise<Array<User>> {
     return this.usersService.findAllUsers();
   }
 
   @Get(":userId")
-  @UseGuards(AuthGuard, IsAdminGuard)
+  @GetOneUserDecorator
   findUser(
     @Param("userId", IsValidObjectIdPipe) userId: string
   ): Promise<User> {
@@ -50,23 +57,7 @@ export class UsersController {
   }
 
   @Patch("/")
-  @UseGuards(AuthGuard)
-  @UseInterceptors(
-    FileInterceptor("avatar", {
-      storage: diskStorage({
-        filename(req, file, cb) {
-          const extname = path.extname(file.originalname);
-          const filename = file.originalname?.split(".")?.[0];
-          const newFilename = `${Date.now()}${Math.random() * 9999}${filename}${extname}`;
-          cb(null, newFilename);
-        },
-        destination(req, file, cb) {
-          cb(null, process.cwd() + "/public/uploads");
-        },
-      }),
-    })
-  )
-  @ApiConsumes("multipart/form-data")
+  @UpdateUserDecorator
   async update(
     @UserDecorator() user: User,
     @Body() updateUserDto: UpdateUserDto,
@@ -82,12 +73,12 @@ export class UsersController {
   }
 
   @Delete(":userId")
-  @UseGuards(AuthGuard, IsAdminGuard)
+  @RemoveUserDecorator
   async removeUser(
     @Param("userId", IsValidObjectIdPipe) userId: string,
     @UserDecorator() user: User
   ): Promise<{ message: string }> {
-    const success = await this.usersService.removeUser(userId , user);
+    const success = await this.usersService.removeUser(userId, user);
 
     return { message: success };
   }

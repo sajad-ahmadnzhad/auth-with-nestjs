@@ -3,7 +3,7 @@ import { rimrafSync } from "rimraf";
 import * as path from "path";
 import * as bcrypt from "bcrypt";
 import { ObjectId } from "mongoose";
-import { BadRequestException } from "@nestjs/common";
+import { ConflictException } from "@nestjs/common";
 @Schema({ versionKey: false, timestamps: true })
 export class User {
   @Prop({ type: String, required: true })
@@ -52,7 +52,7 @@ schema.pre("updateOne", async function (next) {
   });
 
   if (foundUser) {
-    throw new BadRequestException(
+    throw new ConflictException(
       "User with this username or email already exists"
     );
   }
@@ -69,7 +69,7 @@ schema.pre("updateOne", async function (next) {
   if (password) {
     updateData["$set"].password = bcrypt.hashSync(password, 12);
   }
-  
+
   const { email } = updateData["$set"]
   
   if (email && email !== user.email) {
