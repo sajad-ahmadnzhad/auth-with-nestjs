@@ -1,6 +1,8 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
-
-@Schema({versionKey: false , timestamps: true})
+import { rimrafSync } from "rimraf";
+import * as path from "path";
+import * as bcrypt from "bcrypt";
+@Schema({ versionKey: false, timestamps: true })
 export class User {
   @Prop({ type: String, required: true })
   name: string;
@@ -11,12 +13,12 @@ export class User {
   @Prop({ type: String, required: true })
   email: string;
 
-  @Prop({ type: String, required: true , select: false })
+  @Prop({ type: String, required: true, select: false })
   password: string;
 
   @Prop({
     type: String,
-    default: "/public/uploads/usersAvatar/custom-avatar.jpg",
+    default: "/uploads/custom-avatar.jpg",
   })
   avatarURL: string;
 
@@ -30,4 +32,38 @@ export class User {
   isVerifyEmail: boolean;
 }
 
-export const UserSchema = SchemaFactory.createForClass(User);
+const schema = SchemaFactory.createForClass(User);
+
+schema.pre("updateOne", async function (next) {
+  const user: User = await this.model.findOne(this.getFilter());
+  const updateData: any = this.getUpdate();
+  const publicPath = path.join(process.cwd(), "public");
+
+  if (
+    updateData["$set"].avatarURL &&
+    !user.avatarURL.includes("custom-avatar.jpg")
+  ) {
+    rimrafSync(`${publicPath}${user.avatarURL}`);
+  }
+
+  const {password} = updateData["$set"];
+
+  if (password) {
+    updateData["$set"].password = bcrypt.hashSync(password, 12);
+  }
+
+  if (updateData["$set"].email !== user.email) {
+    updateData["$set"].isVerifyEmail = false;
+  }
+
+  next();
+});
+
+schema.pre('deleteOne', async function (next) {
+  
+
+  
+  next()
+})
+
+export const UserSchema = schema;

@@ -6,15 +6,22 @@ import {
   Param,
   Delete,
   UseGuards,
+  UseInterceptors,
+  UploadedFile,
 } from "@nestjs/common";
 import { UsersService } from "./users.service";
 import { UpdateUserDto } from "./dto/update-user.dto";
-import { ApiCookieAuth, ApiTags } from "@nestjs/swagger";
+import { ApiBody, ApiConsumes, ApiCookieAuth, ApiTags } from "@nestjs/swagger";
 import { User } from "src/schemas/User.schema";
 import { IsAdminGuard } from "src/guards/isAdmin.guard";
 import { AuthGuard } from "src/guards/Auth.guard";
 import { IsValidObjectIdPipe } from "./pipes/isValidObjectId.pipe";
 import { UserDecorator } from "./decorators/user.decorator";
+import { FileInterceptor } from "@nestjs/platform-express";
+import { Express } from "express";
+import { UserAvatarPipe } from "./pipes/user-avatar.pipe";
+import { diskStorage } from "multer";
+import * as path from "path";
 
 @Controller("users")
 @ApiTags("users")
@@ -24,7 +31,7 @@ export class UsersController {
 
   @Get("me")
   @UseGuards(AuthGuard)
-  getMe(@UserDecorator() user: User) {
+  getMe(@UserDecorator() user: User): User {
     return user;
   }
 
@@ -36,22 +43,51 @@ export class UsersController {
 
   @Get(":userId")
   @UseGuards(AuthGuard, IsAdminGuard)
-  findUser(@Param("userId", IsValidObjectIdPipe) userId: string) {
+  findUser(
+    @Param("userId", IsValidObjectIdPipe) userId: string
+  ): Promise<User> {
     return this.usersService.findUser(userId);
   }
 
-  @Patch(":userId")
+  @Patch("/")
+  @UseGuards(AuthGuard)
+  @UseInterceptors(
+    FileInterceptor("avatar", {
+      storage: diskStorage({
+        filename(req, file, cb) {
+          const extname = path.extname(file.originalname);
+          const filename = file.originalname?.split(".")?.[0];
+          const newFilename = `${Date.now()}${Math.random() * 9999}${filename}${extname}`;
+          cb(null, newFilename);
+        },
+        destination(req, file, cb) {
+          cb(null, process.cwd() + "/public/uploads");
+        },
+      }),
+    })
+  )
+  @ApiConsumes("multipart/form-data")
   async update(
-    @Param("userId", IsValidObjectIdPipe) userId: string,
-    @Body() updateUserDto: UpdateUserDto
+    @UserDecorator() user: User,
+    @Body() updateUserDto: UpdateUserDto,
+    @UploadedFile(UserAvatarPipe) file?: Express.Multer.File
   ): Promise<{ message: string }> {
-    const success = await this.usersService.update(userId, updateUserDto);
+    const success = await this.usersService.update(
+      user,
+      updateUserDto,
+      file?.filename
+    );
 
     return { message: success };
   }
 
-  @Delete(":id")
-  remove(@Param("id") id: string) {
-    return this.usersService.remove(+id);
+  @Delete(":userId")
+  @UseGuards(AuthGuard, IsAdminGuard)
+  async removeUser(
+    @Param("userId", IsValidObjectIdPipe) userId: string
+  ): Promise<{ message: string }> {
+    const success = await this.usersService.removeUser(userId);
+
+    return { message: success };
   }
 }

@@ -28,22 +28,28 @@ export class AuthMiddleware implements NestMiddleware {
       throw new ForbiddenException("This path is protected !!");
     }
 
+    let jwtPayload: null | { id: string } = null;
+
     try {
-      const jwtPayload = this.jwtService.verify<{ id: string }>(accessToken, {
+      jwtPayload = this.jwtService.verify<{ id: string }>(accessToken, {
         secret: this.configService.get<string>("ACCESS_TOKEN_SECRET"),
       });
-
-      const user = await this.userModel.findById(jwtPayload.id);
-
-      if (!user) {
-        throw new NotFoundException(AuthMessages.NotFoundUser);
-      }
-
-      req.user = user;
-
-      next();
     } catch (error: any) {
       throw new InternalServerErrorException(error.message);
     }
+
+    const user = await this.userModel.findById(jwtPayload?.id);
+
+    if (!user) {
+      throw new NotFoundException(AuthMessages.NotFoundUser);
+    }
+
+    if (!user.isVerifyEmail) {
+      throw new ForbiddenException(AuthMessages.VerifyYourEmail)
+    }
+
+    req.user = user;
+
+    next();
   }
 }

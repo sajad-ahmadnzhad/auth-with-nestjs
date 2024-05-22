@@ -6,7 +6,7 @@ import { CacheModule } from "@nestjs/cache-manager";
 import { redisStore } from "cache-manager-redis-yet";
 import { APP_GUARD, APP_PIPE } from "@nestjs/core";
 import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
-import { UsersModule } from './users/users.module';
+import { UsersModule } from "./users/users.module";
 
 @Module({
   imports: [

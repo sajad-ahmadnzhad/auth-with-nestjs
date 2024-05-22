@@ -26,7 +26,7 @@ export class UsersService {
     return this.usersModel.find();
   }
 
-  async findUser(userId: string) {
+  async findUser(userId: string): Promise<User> {
     const user = await this.usersModel.findById(userId);
 
     if (!user) {
@@ -36,17 +36,30 @@ export class UsersService {
     return user;
   }
 
-  async update(id: string, updateUserDto: UpdateUserDto) {
-    const user = await this.usersModel.findById(id);
+  async update(
+    user: User,
+    updateUserDto: UpdateUserDto,
+    avatarName?: string
+  ): Promise<string> {
+    if (avatarName) {
+      avatarName = `/uploads/${avatarName}`;
+    }
 
-    if (!user) throw new NotFoundException(UsersMessages.NotFound);
-
-    await user.updateOne({ $set: updateUserDto });
+    await this.usersModel.updateOne(
+      { email: user.email },
+      {
+        $set: { ...updateUserDto, avatarURL: avatarName },
+      }
+    );
 
     return UsersMessages.UpdatedSuccess;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async removeUser(userId: string): Promise<string> {
+    const user = await this.usersModel.findById(userId);
+
+    if (!user) throw new NotFoundException(UsersMessages.NotFound);
+
+    return UsersMessages.RemovedSuccess;
   }
 }
