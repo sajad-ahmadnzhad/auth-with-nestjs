@@ -5,32 +5,26 @@ import {
   Patch,
   Param,
   Delete,
-  UseGuards,
-  UseInterceptors,
   UploadedFile,
+  Query,
 } from "@nestjs/common";
 import { UsersService } from "./users.service";
 import { UpdateUserDto } from "./dto/update-user.dto";
-import { ApiBody, ApiConsumes, ApiCookieAuth, ApiTags } from "@nestjs/swagger";
+import { ApiCookieAuth, ApiTags } from "@nestjs/swagger";
 import { User } from "src/schemas/User.schema";
-import { IsAdminGuard } from "src/guards/isAdmin.guard";
-import { AuthGuard } from "src/guards/Auth.guard";
 import { IsValidObjectIdPipe } from "./pipes/isValidObjectId.pipe";
 import { UserDecorator } from "./decorators/currentUser.decorator";
-import { FileInterceptor } from "@nestjs/platform-express";
 import { Express } from "express";
 import { UserAvatarPipe } from "./pipes/user-avatar.pipe";
-import { diskStorage } from "multer";
-import * as path from "path";
 import {
   ChangeRoleUserDecorator,
   GetAllUsersDecorator,
   GetMeDecorator,
   GetOneUserDecorator,
   RemoveUserDecorator,
+  SearchUserDecorator,
   UpdateUserDecorator,
 } from "./decorators/users.decorator";
-import { IsSuperAdminGuard } from "src/guards/isSuperAdmin.guard";
 
 @Controller("users")
 @ApiTags("users")
@@ -48,6 +42,12 @@ export class UsersController {
   @GetAllUsersDecorator
   findAllUsers(): Promise<Array<User>> {
     return this.usersService.findAllUsers();
+  }
+
+  @Get("search")
+  @SearchUserDecorator
+  searchUser(@Query("user") user: string) {
+    return this.usersService.searchUser(user);
   }
 
   @Get(":userId")

@@ -10,10 +10,10 @@ import {
   ApiOperation,
 } from "@nestjs/swagger";
 import { diskStorage } from "multer";
-import * as path from "path";
 import { AuthGuard } from "src/guards/Auth.guard";
 import { IsAdminGuard } from "src/guards/isAdmin.guard";
 import { IsSuperAdminGuard } from "src/guards/isSuperAdmin.guard";
+import { uploadDiskStorage } from "../utils/upload-file.utils";
 
 //* Get me decorator
 export const GetMeDecorator = applyDecorators(
@@ -45,17 +45,7 @@ export const UpdateUserDecorator = applyDecorators(
   UseGuards(AuthGuard),
   UseInterceptors(
     FileInterceptor("avatar", {
-      storage: diskStorage({
-        filename(req, file, cb) {
-          const extname = path.extname(file.originalname);
-          const filename = file.originalname?.split(".")?.[0];
-          const newFilename = `${Date.now()}${Math.random() * 9999}${filename}${extname}`;
-          cb(null, newFilename);
-        },
-        destination(req, file, cb) {
-          cb(null, process.cwd() + "/public/uploads");
-        },
-      }),
+      storage: diskStorage(uploadDiskStorage()),
     })
   ),
   ApiConsumes("multipart/form-data"),
@@ -80,4 +70,11 @@ export const ChangeRoleUserDecorator = applyDecorators(
   ApiNotFoundResponse({ description: "User not found" }),
   ApiBadRequestResponse({ description: "Cannot change role super admin" }),
   ApiOperation({ summary: "change role user" })
+);
+
+//* Search user decorator
+export const SearchUserDecorator = applyDecorators(
+  UseGuards(AuthGuard, IsAdminGuard),
+  ApiOperation({ summary: "search in users list" }),
+  ApiOkResponse({ description: "Get matched users", type: Object })
 );

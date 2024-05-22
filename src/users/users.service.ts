@@ -98,4 +98,22 @@ export class UsersService {
 
     return UsersMessages.ChangeRoleSuccess;
   }
+
+  async searchUser(user: string): Promise<Array<User>> {
+    if (!user) {
+      throw new BadRequestException(UsersMessages.RequiredUser);
+    }
+
+    const foundUsers = await this.usersModel.find({
+      $or: [
+        {
+          name: { $regex: user },
+          username: { $regex: user },
+          email: { $regex: user },
+        },
+      ],
+    });
+
+    return foundUsers;
+  }
 }

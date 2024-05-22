@@ -6,4 +6,5 @@ export enum UsersMessages {
   CannotRemoveSuperAdmin = "You cannot remove super admin",
   CannotChangeRoleSuperAdmin = "You cannot change your role",
   ChangeRoleSuccess = "Changed role successfully",
+  RequiredUser = 'Required user query'
 }
