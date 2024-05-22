@@ -13,6 +13,7 @@ import { diskStorage } from "multer";
 import * as path from "path";
 import { AuthGuard } from "src/guards/Auth.guard";
 import { IsAdminGuard } from "src/guards/isAdmin.guard";
+import { IsSuperAdminGuard } from "src/guards/isSuperAdmin.guard";
 
 //* Get me decorator
 export const GetMeDecorator = applyDecorators(
@@ -71,4 +72,12 @@ export const RemoveUserDecorator = applyDecorators(
   ApiNotFoundResponse({ description: "User not found" }),
   ApiBadRequestResponse({ description: "Cannot remove admin" }),
   ApiOperation({ summary: "remove user" })
+);
+
+//* Change role user decorator
+export const ChangeRoleUserDecorator = applyDecorators(
+  UseGuards(AuthGuard, IsAdminGuard, IsSuperAdminGuard),
+  ApiNotFoundResponse({ description: "User not found" }),
+  ApiBadRequestResponse({ description: "Cannot change role super admin" }),
+  ApiOperation({ summary: "change role user" })
 );

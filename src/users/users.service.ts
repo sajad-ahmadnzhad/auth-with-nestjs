@@ -84,4 +84,18 @@ export class UsersService {
 
     return UsersMessages.RemovedSuccess;
   }
+
+  async changeRoleUser(userId: string): Promise<string> {
+    const user = await this.usersModel.findById(userId);
+
+    if (!user) throw new NotFoundException(UsersMessages.NotFound);
+
+    if (user.isSuperAdmin) {
+      throw new BadRequestException(UsersMessages.CannotChangeRoleSuperAdmin);
+    }
+
+    await user.updateOne({ isAdmin: !user.isAdmin });
+
+    return UsersMessages.ChangeRoleSuccess;
+  }
 }

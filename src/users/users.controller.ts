@@ -23,12 +23,14 @@ import { UserAvatarPipe } from "./pipes/user-avatar.pipe";
 import { diskStorage } from "multer";
 import * as path from "path";
 import {
+  ChangeRoleUserDecorator,
   GetAllUsersDecorator,
   GetMeDecorator,
   GetOneUserDecorator,
   RemoveUserDecorator,
   UpdateUserDecorator,
 } from "./decorators/users.decorator";
+import { IsSuperAdminGuard } from "src/guards/isSuperAdmin.guard";
 
 @Controller("users")
 @ApiTags("users")
@@ -56,7 +58,7 @@ export class UsersController {
     return this.usersService.findUser(userId);
   }
 
-  @Patch("/")
+  @Patch()
   @UpdateUserDecorator
   async update(
     @UserDecorator() user: User,
@@ -79,6 +81,16 @@ export class UsersController {
     @UserDecorator() user: User
   ): Promise<{ message: string }> {
     const success = await this.usersService.removeUser(userId, user);
+
+    return { message: success };
+  }
+
+  @Patch("change-role/:userId")
+  @ChangeRoleUserDecorator
+  async changeRoleUser(
+    @Param("userId", IsValidObjectIdPipe) userId: string
+  ): Promise<{ message: string }> {
+    const success = await this.usersService.changeRoleUser(userId);
 
     return { message: success };
   }
