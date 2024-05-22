@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  HttpException,
   Inject,
   Injectable,
   NotFoundException,
@@ -11,6 +12,7 @@ import { Model } from "mongoose";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { RedisCache } from "cache-manager-redis-yet";
 import { UsersMessages } from "./users.message";
+import { rimrafSync } from "rimraf";
 
 @Injectable()
 export class UsersService {
@@ -50,12 +52,17 @@ export class UsersService {
       avatarName = `/uploads/${avatarName}`;
     }
 
-    await this.usersModel.updateOne(
-      { email: user.email },
-      {
-        $set: { ...updateUserDto, avatarURL: avatarName },
-      }
-    );
+    try {
+      await this.usersModel.updateOne(
+        { email: user.email },
+        {
+          $set: { ...updateUserDto, avatarURL: avatarName },
+        }
+      );
+    } catch (error) {
+      rimrafSync(`${process.cwd()}/public/${avatarName}`);
+      throw new HttpException(error.message, error.status);
+    }
 
     return UsersMessages.UpdatedSuccess;
   }
