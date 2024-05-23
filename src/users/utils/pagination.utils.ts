@@ -1,6 +1,6 @@
 import { Model } from "mongoose";
 
-interface OutputMongoosePagination<T> {
+interface OutputPagination<T> {
   count: number;
   page: number;
   pages: number;
@@ -12,7 +12,7 @@ export const mongoosePagination = async <T>(
   pageQuery: number,
   query: any,
   model: Model<T>
-): Promise<OutputMongoosePagination<T>> => {
+): Promise<OutputPagination<T>> => {
   const page = pageQuery || 1;
   const pageSize = limitQuery || 20;
   const skip = (page - 1) * pageSize;
@@ -34,7 +34,7 @@ export const cachePagination = async <T>(
   limitQuery: number,
   pageQuery: number,
   cachedData: T[]
-) => {
+): Promise<OutputPagination<T>> => {
   const page = pageQuery || 1;
   const pageSize = limitQuery || 20;
   const skip = (page - 1) * pageSize;

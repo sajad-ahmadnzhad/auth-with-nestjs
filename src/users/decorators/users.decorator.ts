@@ -81,3 +81,8 @@ export const SearchUserDecorator = applyDecorators(
   ApiOperation({ summary: "search in users list" }),
   ApiOkResponse({ description: "Get matched users", type: Object })
 );
+
+//* Delete account user decorator
+export const DeleteAccountUserDecorator = applyDecorators(
+  UseGuards(AuthGuard)
+)

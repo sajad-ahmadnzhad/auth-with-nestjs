@@ -15,6 +15,8 @@ import { UsersMessages } from "./users.message";
 import { rimrafSync } from "rimraf";
 import { cachePagination, mongoosePagination } from "./utils/pagination.utils";
 import { PaginatedUserList } from "./users.interface";
+import { DeleteAccountDto } from "./dto/delete-account.dto";
+import * as bcrypt from "bcrypt";
 
 @Injectable()
 export class UsersService {
@@ -131,5 +133,30 @@ export class UsersService {
     });
 
     return foundUsers;
+  }
+
+  async deleteAccount(user: User, dto: DeleteAccountDto): Promise<string> {
+    const foundUser = await this.usersModel
+      .findOne({ email: user.email })
+      .select("password")!;
+
+    if (foundUser.isSuperAdmin) {
+      throw new BadRequestException(
+        UsersMessages.TransferOwnershipForDeleteAccount
+      );
+    }
+
+    const comparePassword = bcrypt.compareSync(
+      dto.password,
+      foundUser.password
+    );
+
+    if (!comparePassword) {
+      throw new BadRequestException(UsersMessages.InvalidPassword);
+    }
+
+    await foundUser.deleteOne();
+
+    return UsersMessages.DeletedAccountSuccess;
   }
 }

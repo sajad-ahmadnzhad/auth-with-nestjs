@@ -8,6 +8,7 @@ import {
   UploadedFile,
   Query,
   ParseIntPipe,
+  Res,
 } from "@nestjs/common";
 import { UsersService } from "./users.service";
 import { UpdateUserDto } from "./dto/update-user.dto";
@@ -15,10 +16,11 @@ import { ApiCookieAuth, ApiTags } from "@nestjs/swagger";
 import { User } from "src/schemas/User.schema";
 import { IsValidObjectIdPipe } from "./pipes/isValidObjectId.pipe";
 import { UserDecorator } from "./decorators/currentUser.decorator";
-import { Express } from "express";
+import { Express, Response } from "express";
 import { UserAvatarPipe } from "./pipes/user-avatar.pipe";
 import {
   ChangeRoleUserDecorator,
+  DeleteAccountUserDecorator,
   GetAllUsersDecorator,
   GetMeDecorator,
   GetOneUserDecorator,
@@ -27,6 +29,7 @@ import {
   UpdateUserDecorator,
 } from "./decorators/users.decorator";
 import { PaginatedUserList } from "./users.interface";
+import { DeleteAccountDto } from "./dto/delete-account.dto";
 
 @Controller("users")
 @ApiTags("users")
@@ -76,6 +79,22 @@ export class UsersController {
       file?.filename
     );
 
+    return { message: success };
+  }
+
+  @Delete("delete-account")
+  @DeleteAccountUserDecorator
+  async deleteAccount(
+    @UserDecorator() user: User,
+    @Body() deleteAccountDto: DeleteAccountDto,
+    @Res({ passthrough: true }) res: Response
+  ): Promise<{ message: string }> {
+    const success = await this.usersService.deleteAccount(
+      user,
+      deleteAccountDto
+    );
+
+    res.clearCookie("accessToken");
     return { message: success };
   }
 
