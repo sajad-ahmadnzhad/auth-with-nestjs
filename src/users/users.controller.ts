@@ -20,6 +20,7 @@ import { Express, Response } from "express";
 import { UserAvatarPipe } from "./pipes/user-avatar.pipe";
 import {
   ChangeRoleUserDecorator,
+  ChangeSuperAdminDecorator,
   DeleteAccountUserDecorator,
   GetAllUsersDecorator,
   GetMeDecorator,
@@ -30,6 +31,7 @@ import {
 } from "./decorators/users.decorator";
 import { PaginatedUserList } from "./users.interface";
 import { DeleteAccountDto } from "./dto/delete-account.dto";
+import { ChangeSuperAdminDto } from "./dto/change-super-admin.dto";
 
 @Controller("users")
 @ApiTags("users")
@@ -115,6 +117,22 @@ export class UsersController {
     @Param("userId", IsValidObjectIdPipe) userId: string
   ): Promise<{ message: string }> {
     const success = await this.usersService.changeRoleUser(userId);
+
+    return { message: success };
+  }
+
+  @Patch("change-super-admin/:userId")
+  @ChangeSuperAdminDecorator
+  async changeSuperAdmin(
+    @Param("userId", IsValidObjectIdPipe) userId: string,
+    @Body() changeSuperAdminDto: ChangeSuperAdminDto,
+    @UserDecorator() user: User
+  ) {
+    const success = await this.usersService.changeSuperAdmin(
+      userId,
+      changeSuperAdminDto,
+      user
+    );
 
     return { message: success };
   }

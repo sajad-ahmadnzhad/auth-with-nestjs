@@ -17,6 +17,7 @@ import { cachePagination, mongoosePagination } from "./utils/pagination.utils";
 import { PaginatedUserList } from "./users.interface";
 import { DeleteAccountDto } from "./dto/delete-account.dto";
 import * as bcrypt from "bcrypt";
+import { ChangeSuperAdminDto } from "./dto/change-super-admin.dto";
 
 @Injectable()
 export class UsersService {
@@ -158,5 +159,37 @@ export class UsersService {
     await foundUser.deleteOne();
 
     return UsersMessages.DeletedAccountSuccess;
+  }
+
+  async changeSuperAdmin(
+    userId: string,
+    dto: ChangeSuperAdminDto,
+    user: User
+  ): Promise<string> {
+    const existingUser = await this.usersModel.findById(userId);
+
+    if (!existingUser) throw new NotFoundException(UsersMessages.NotFound);
+
+    const foundUser = await this.usersModel
+      .findOne({ email: user.email })
+      .select("password")!;
+
+    if (existingUser.isSuperAdmin) {
+      throw new BadRequestException(UsersMessages.EnteredIdIsSuperAdmin);
+    }
+
+    const comparePassword = bcrypt.compareSync(
+      dto.password,
+      foundUser.password
+    );
+
+    if (!comparePassword) {
+      throw new BadRequestException(UsersMessages.InvalidPassword);
+    }
+
+    await existingUser.updateOne({ isAdmin: true, isSuperAdmin: true });
+    await foundUser.updateOne({ isSuperAdmin: false });
+
+    return UsersMessages.OwnershipTransferSuccess;
   }
 }

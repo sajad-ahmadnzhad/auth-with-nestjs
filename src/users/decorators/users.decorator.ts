@@ -8,6 +8,7 @@ import {
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiParam,
   ApiQuery,
 } from "@nestjs/swagger";
 import { diskStorage } from "multer";
@@ -47,9 +48,7 @@ export const GetOneUserDecorator = applyDecorators(
 export const UpdateUserDecorator = applyDecorators(
   UseGuards(AuthGuard),
   UseInterceptors(
-    FileInterceptor("avatar", {
-      storage: diskStorage(uploadDiskStorage()),
-    })
+    FileInterceptor("avatar", { storage: diskStorage(uploadDiskStorage()) })
   ),
   ApiConsumes("multipart/form-data"),
   ApiOperation({ summary: "update current user" }),
@@ -64,6 +63,7 @@ export const RemoveUserDecorator = applyDecorators(
   UseGuards(AuthGuard, IsAdminGuard),
   ApiNotFoundResponse({ description: "User not found" }),
   ApiBadRequestResponse({ description: "Cannot remove admin" }),
+  ApiOkResponse({ description: "Removed user success" }),
   ApiOperation({ summary: "remove user" })
 );
 
@@ -72,17 +72,42 @@ export const ChangeRoleUserDecorator = applyDecorators(
   UseGuards(AuthGuard, IsAdminGuard, IsSuperAdminGuard),
   ApiNotFoundResponse({ description: "User not found" }),
   ApiBadRequestResponse({ description: "Cannot change role super admin" }),
-  ApiOperation({ summary: "change role user" })
+  ApiOkResponse({ description: "Changed role success" }),
+  ApiOperation({ summary: "change role to admin or user" })
 );
 
 //* Search user decorator
 export const SearchUserDecorator = applyDecorators(
   UseGuards(AuthGuard, IsAdminGuard),
   ApiOperation({ summary: "search in users list" }),
+  ApiBadRequestResponse({ description: "User query is required" }),
   ApiOkResponse({ description: "Get matched users", type: Object })
 );
 
 //* Delete account user decorator
 export const DeleteAccountUserDecorator = applyDecorators(
-  UseGuards(AuthGuard)
-)
+  UseGuards(AuthGuard),
+  ApiBadRequestResponse({
+    description: "Invalid Password | cannot delete account super admin",
+  }),
+  ApiBadRequestResponse({
+    description: "Transfer Ownership For Delete Account | Invalid password",
+  }),
+  ApiOkResponse({ description: "Deleted account success" }),
+  ApiOperation({ summary: "delete account user" })
+);
+
+//* Change super admin decorator
+export const ChangeSuperAdminDecorator = applyDecorators(
+  UseGuards(AuthGuard, IsAdminGuard, IsSuperAdminGuard),
+  ApiParam({
+    name: "userId",
+    description: "ID of the person who becomes the owner",
+  }),
+  ApiNotFoundResponse({ description: "User not found" }),
+  ApiBadRequestResponse({
+    description: "Entered id is super admin | Invalid password",
+  }),
+  ApiOkResponse({ description: "Changed super admin success" }),
+  ApiOperation({ summary: "possession transition" })
+);

@@ -8,6 +8,8 @@ export enum UsersMessages {
   ChangeRoleSuccess = "Changed role successfully",
   RequiredUser = "Required user query",
   InvalidPassword = "Password is not valid",
-  DeletedAccountSuccess = 'Deleted account successfully',
-  TransferOwnershipForDeleteAccount = 'To delete your account, transfer ownership first'
+  DeletedAccountSuccess = "Deleted account successfully",
+  TransferOwnershipForDeleteAccount = "To delete your account, transfer ownership first",
+  OwnershipTransferSuccess = "The ownership transfer was successful",
+  EnteredIdIsSuperAdmin = "The entered ID is super admin",
 }
