@@ -5,14 +5,19 @@ import { ConfigService } from "@nestjs/config";
 import * as cookieParser from "cookie-parser";
 import helmet from "helmet";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
+import { NestExpressApplication } from "@nestjs/platform-express";
 
 async function bootstrap() {
   const logger = new Logger();
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const configService = app.get(ConfigService);
   const PORT = configService.get<string>("PORT");
   const ALLOWED_ORIGINS: string[] =
     JSON.parse(configService.get<string>("ALLOWED_ORIGINS")) || [];
+
+  //* Use static files
+  const publicPath = `${process.cwd()}/public`;
+  app.useStaticAssets(publicPath);
 
   //* Init swagger documentation
   const swaggerConfig = new DocumentBuilder()
@@ -21,7 +26,7 @@ async function bootstrap() {
     .setVersion("1.0")
     .addCookieAuth("accessToken", { type: "http" })
     .addTag("auth")
-    .addTag('users')
+    .addTag("users")
     .build();
 
   const document = SwaggerModule.createDocument(app, swaggerConfig);
