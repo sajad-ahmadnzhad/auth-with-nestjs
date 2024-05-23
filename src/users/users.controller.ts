@@ -32,10 +32,12 @@ import {
 import { PaginatedUserList } from "./users.interface";
 import { DeleteAccountDto } from "./dto/delete-account.dto";
 import { ChangeSuperAdminDto } from "./dto/change-super-admin.dto";
+import { Throttle } from "@nestjs/throttler";
 
 @Controller("users")
 @ApiTags("users")
 @ApiCookieAuth()
+@Throttle({default: {limit: 20 , ttl: 60_000}})
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 

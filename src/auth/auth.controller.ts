@@ -19,7 +19,7 @@ import {
   SignUpUserDecorator,
 } from "./decorators/auth.decorator";
 
-@Throttle({ default: { ttl: 60_000, limit: 3 } })
+@Throttle({ default: { ttl: 60_000, limit: 5 } })
 @ApiTags("auth")
 @Controller("auth")
 export class AuthController {
