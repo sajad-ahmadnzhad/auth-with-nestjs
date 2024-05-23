@@ -26,6 +26,7 @@ import {
   SearchUserDecorator,
   UpdateUserDecorator,
 } from "./decorators/users.decorator";
+import { PaginatedUserList } from "./users.interface";
 
 @Controller("users")
 @ApiTags("users")
@@ -44,7 +45,7 @@ export class UsersController {
   findAllUsers(
     @Query("page", new ParseIntPipe({ optional: true })) page?: number,
     @Query("limit", new ParseIntPipe({ optional: true })) limit?: number
-  ): Promise<Array<User>> {
+  ): Promise<PaginatedUserList<User>> {
     return this.usersService.findAllUsers(page, limit);
   }
 

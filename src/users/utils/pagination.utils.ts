@@ -1,13 +1,18 @@
-import { NotFoundException } from "@nestjs/common";
-import { Document, Model } from "mongoose";
-import { User } from "src/schemas/User.schema";
+import { Model } from "mongoose";
+
+interface OutputMongoosePagination<T> {
+  count: number;
+  page: number;
+  pages: number;
+  data: T[];
+}
 
 export const mongoosePagination = async <T>(
   limitQuery: number,
   pageQuery: number,
   query: any,
   model: Model<T>
-) => {
+): Promise<OutputMongoosePagination<T>> => {
   const page = pageQuery || 1;
   const pageSize = limitQuery || 20;
   const skip = (page - 1) * pageSize;
@@ -15,11 +20,7 @@ export const mongoosePagination = async <T>(
   const pages = Math.ceil(total / pageSize);
   query = query.skip(skip).limit(pageSize);
 
-  if (page > pages) {
-    throw new NotFoundException("Page not found !!");
-  }
-
-  const result = await query;
+  const result: T[] = await query;
 
   return {
     count: result.length,
@@ -29,10 +30,10 @@ export const mongoosePagination = async <T>(
   };
 };
 
-export const cachePagination = async (
+export const cachePagination = async <T>(
   limitQuery: number,
   pageQuery: number,
-  cachedData: User[],
+  cachedData: T[]
 ) => {
   const page = pageQuery || 1;
   const pageSize = limitQuery || 20;

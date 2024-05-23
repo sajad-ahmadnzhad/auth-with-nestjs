@@ -14,6 +14,7 @@ import { RedisCache } from "cache-manager-redis-yet";
 import { UsersMessages } from "./users.message";
 import { rimrafSync } from "rimraf";
 import { cachePagination, mongoosePagination } from "./utils/pagination.utils";
+import { PaginatedUserList } from "./users.interface";
 
 @Injectable()
 export class UsersService {
@@ -22,7 +23,16 @@ export class UsersService {
     @Inject(CACHE_MANAGER) private redisCache: RedisCache
   ) {}
 
-  async findAllUsers(page?: number, limit?: number): Promise<any> {
+  async findAllUsers(
+    page?: number,
+    limit?: number
+  ): Promise<PaginatedUserList<User>> {
+    const usersCache: User[] = await this.redisCache.get("users");
+
+    if (usersCache) {
+      return cachePagination(limit, page, usersCache);
+    }
+
     const query = this.usersModel.find();
 
     const searchResult = await mongoosePagination(
@@ -31,12 +41,6 @@ export class UsersService {
       query,
       this.usersModel
     );
-
-    const usersCache: User[] = await this.redisCache.get("users");
-
-    if (usersCache) {
-      return cachePagination(limit, page, usersCache);
-    }
 
     const users = await this.usersModel.find();
 
