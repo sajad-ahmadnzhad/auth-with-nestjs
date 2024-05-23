@@ -23,7 +23,8 @@ export class UsersModule implements NestModule {
       .apply(AuthMiddleware)
       .forRoutes(
         { path: "/users/*", method: RequestMethod.ALL },
-        { path: "/users", method: RequestMethod.PATCH }
+        { path: "/users", method: RequestMethod.PATCH },
+        { path: "/users", method: RequestMethod.GET },
       );
   }
 }

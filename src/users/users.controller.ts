@@ -7,6 +7,7 @@ import {
   Delete,
   UploadedFile,
   Query,
+  ParseIntPipe,
 } from "@nestjs/common";
 import { UsersService } from "./users.service";
 import { UpdateUserDto } from "./dto/update-user.dto";
@@ -40,8 +41,11 @@ export class UsersController {
 
   @Get()
   @GetAllUsersDecorator
-  findAllUsers(): Promise<Array<User>> {
-    return this.usersService.findAllUsers();
+  findAllUsers(
+    @Query("page", new ParseIntPipe({ optional: true })) page?: number,
+    @Query("limit", new ParseIntPipe({ optional: true })) limit?: number
+  ): Promise<Array<User>> {
+    return this.usersService.findAllUsers(page, limit);
   }
 
   @Get("search")

@@ -13,6 +13,7 @@ import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { RedisCache } from "cache-manager-redis-yet";
 import { UsersMessages } from "./users.message";
 import { rimrafSync } from "rimraf";
+import { cachePagination, mongoosePagination } from "./utils/pagination.utils";
 
 @Injectable()
 export class UsersService {
@@ -21,16 +22,27 @@ export class UsersService {
     @Inject(CACHE_MANAGER) private redisCache: RedisCache
   ) {}
 
-  async findAllUsers(): Promise<Array<User>> {
+  async findAllUsers(page?: number, limit?: number): Promise<any> {
+    const query = this.usersModel.find();
+
+    const searchResult = await mongoosePagination(
+      limit,
+      page,
+      query,
+      this.usersModel
+    );
+
     const usersCache: User[] = await this.redisCache.get("users");
 
-    if (usersCache) return usersCache;
+    if (usersCache) {
+      return cachePagination(limit, page, usersCache);
+    }
 
     const users = await this.usersModel.find();
 
-    await this.redisCache.set("users", users, 60_000);
+    await this.redisCache.set("users", users, 30_000);
 
-    return this.usersModel.find();
+    return searchResult;
   }
 
   async findUser(userId: string): Promise<User> {

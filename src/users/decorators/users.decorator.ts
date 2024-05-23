@@ -8,6 +8,7 @@ import {
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiQuery,
 } from "@nestjs/swagger";
 import { diskStorage } from "multer";
 import { AuthGuard } from "src/guards/Auth.guard";
@@ -27,7 +28,9 @@ export const GetAllUsersDecorator = applyDecorators(
   UseGuards(AuthGuard, IsAdminGuard),
   ApiOkResponse({ description: "Return all users for admins", type: Object }),
   ApiForbiddenResponse({ description: "Forbidden resource" }),
-  ApiOperation({ summary: "get all users" })
+  ApiOperation({ summary: "get all users" }),
+  ApiQuery({ name: "page", type: Number, required: false }),
+  ApiQuery({ name: "limit", type: Number, required: false })
 );
 
 //* Get one user decorator
