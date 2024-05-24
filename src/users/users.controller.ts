@@ -17,7 +17,6 @@ import { User } from "src/schemas/User.schema";
 import { IsValidObjectIdPipe } from "./pipes/isValidObjectId.pipe";
 import { UserDecorator } from "./decorators/currentUser.decorator";
 import { Express, Response } from "express";
-import { UserAvatarPipe } from "./pipes/user-avatar.pipe";
 import {
   ChangeRoleUserDecorator,
   ChangeSuperAdminDecorator,
@@ -75,7 +74,7 @@ export class UsersController {
   async update(
     @UserDecorator() user: User,
     @Body() updateUserDto: UpdateUserDto,
-    @UploadedFile(UserAvatarPipe) file?: Express.Multer.File
+    @UploadedFile() file?: Express.Multer.File
   ): Promise<{ message: string }> {
     const success = await this.usersService.update(
       user,
