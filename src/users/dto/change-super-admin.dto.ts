@@ -1,9 +1,4 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsString } from "class-validator";
+import { PartialType } from "@nestjs/swagger";
+import { DeleteAccountDto } from "./delete-account.dto";
 
-export class ChangeSuperAdminDto {
-  @IsNotEmpty()
-  @IsString()
-  @ApiProperty()
-  password: string;
-}
+export class ChangeSuperAdminDto extends PartialType(DeleteAccountDto) {}
