@@ -46,11 +46,12 @@ export class AuthGuard implements CanActivate {
       throw new NotFoundException("User not found");
     }
 
-    if (!user.isVerifyEmail) {
-      throw new ForbiddenException(
-        "Verify your email before accessing this site"
-      );
-    }
+    if (req.url !== "/users" && req.method !== "PATCH")
+      if (!user.isVerifyEmail) {
+        throw new ForbiddenException(
+          "Verify your email before accessing this site"
+        );
+      }
 
     req.user = user;
 
