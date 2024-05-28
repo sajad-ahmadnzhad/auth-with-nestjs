@@ -266,9 +266,9 @@ export class AuthService {
 
     try {
       await this.mailerService.sendMail(mailOptions);
-    } catch (error) {
+    } catch (error: any) {
       await token.deleteOne();
-      throw error;
+      throw new InternalServerErrorException(error.message);
     }
 
     return AuthMessages.SendVerifyEmailSuccess;

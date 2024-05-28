@@ -1,9 +1,4 @@
-import {
-  BadRequestException,
-  UseGuards,
-  UseInterceptors,
-  applyDecorators,
-} from "@nestjs/common";
+import { UseGuards, UseInterceptors, applyDecorators } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import {
   ApiBadRequestResponse,
@@ -16,11 +11,11 @@ import {
   ApiParam,
   ApiQuery,
 } from "@nestjs/swagger";
-import { diskStorage } from "multer";
+import { memoryStorage } from "multer";
 import { AuthGuard } from "src/guards/Auth.guard";
 import { IsAdminGuard } from "src/guards/isAdmin.guard";
 import { IsSuperAdminGuard } from "src/guards/isSuperAdmin.guard";
-import { uploadDiskStorage, fileFilter } from "../utils/upload-file.utils";
+import { fileFilter } from "../utils/upload-file.utils";
 
 //* Get me decorator
 export const GetMeDecorator = applyDecorators(
@@ -54,8 +49,8 @@ export const UpdateUserDecorator = applyDecorators(
   UseInterceptors(
     FileInterceptor("avatar", {
       fileFilter,
-      storage: diskStorage(uploadDiskStorage()),
-      limits: { fileSize: 2048 * 1024 , fields: 1, files: 1 },
+      storage: memoryStorage(),
+      limits: { fileSize: 2048 * 1024, fields: 1, files: 1 },
     })
   ),
   UseGuards(AuthGuard),
@@ -65,7 +60,7 @@ export const UpdateUserDecorator = applyDecorators(
   ApiConflictResponse({
     description: "already registered with username or email",
   })
-)
+);
 
 //* Remove user decorator
 export const RemoveUserDecorator = applyDecorators(

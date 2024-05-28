@@ -18,6 +18,7 @@ import { PaginatedUserList } from "./users.interface";
 import { DeleteAccountDto } from "./dto/delete-account.dto";
 import * as bcrypt from "bcrypt";
 import { ChangeSuperAdminDto } from "./dto/change-super-admin.dto";
+import { saveFile } from "./utils/upload-file.utils";
 
 @Injectable()
 export class UsersService {
@@ -65,22 +66,24 @@ export class UsersService {
   async update(
     user: User,
     updateUserDto: UpdateUserDto,
-    avatarName?: string
+    file?: Express.Multer.File
   ): Promise<string> {
-    if (avatarName) {
-      avatarName = `/uploads/${avatarName}`;
+    let avatarURL: string | undefined = file && saveFile(file);
+
+    if (avatarURL) {
+      avatarURL = `/uploads/${avatarURL}`;
     }
 
     try {
       await this.usersModel.updateOne(
         { email: user.email },
         {
-          $set: { ...updateUserDto, avatarURL: avatarName },
+          $set: { ...updateUserDto, avatarURL },
         }
       );
     } catch (error) {
-      rimrafSync(`${process.cwd()}/public/${avatarName}`);
-      throw new HttpException(error.message, error.status);
+      rimrafSync(`${process.cwd()}/public/${avatarURL}`);
+      throw new HttpException(error.message, error.status || 500);
     }
 
     return UsersMessages.UpdatedSuccess;

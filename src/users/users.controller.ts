@@ -36,7 +36,7 @@ import { Throttle } from "@nestjs/throttler";
 @Controller("users")
 @ApiTags("users")
 @ApiCookieAuth()
-@Throttle({default: {limit: 20 , ttl: 60_000}})
+@Throttle({ default: { limit: 20, ttl: 60_000 } })
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
@@ -76,11 +76,7 @@ export class UsersController {
     @Body() updateUserDto: UpdateUserDto,
     @UploadedFile() file?: Express.Multer.File
   ): Promise<{ message: string }> {
-    const success = await this.usersService.update(
-      user,
-      updateUserDto,
-      file?.filename
-    );
+    const success = await this.usersService.update(user, updateUserDto, file);
 
     return { message: success };
   }
