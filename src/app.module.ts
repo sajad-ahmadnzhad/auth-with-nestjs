@@ -7,6 +7,7 @@ import { redisStore } from "cache-manager-redis-yet";
 import { APP_GUARD, APP_PIPE } from "@nestjs/core";
 import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
 import { UsersModule } from "./users/users.module";
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { UsersModule } from "./users/users.module";
       },
     }),
     UsersModule,
+    MailModule,
   ],
   providers: [
     { provide: APP_PIPE, useValue: new ValidationPipe({ whitelist: true }) },
