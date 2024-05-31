@@ -25,13 +25,12 @@ async function bootstrap() {
     .setDescription("Auth system description")
     .setVersion("1.0")
     .addCookieAuth("accessToken", { type: "http" })
-    .addTag("auth")
-    .addTag("users")
     .build();
 
-  const document = SwaggerModule.createDocument(app, swaggerConfig);
-
-  SwaggerModule.setup("api", app, document);
+  if (process.env.NODE_ENV !== "prod") {
+    const document = SwaggerModule.createDocument(app, swaggerConfig);
+    SwaggerModule.setup("api", app, document);
+  }
 
   app.use(cookieParser());
   app.use(helmet());
@@ -43,7 +42,7 @@ async function bootstrap() {
     credentials: true,
   });
 
-  await app.listen(PORT);
+  await app.listen(PORT , '0.0.0.0');
   logger.log(`Application running on port ${PORT}`);
 }
 bootstrap();

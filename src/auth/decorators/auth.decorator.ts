@@ -15,7 +15,7 @@ import {
   ApiOkResponse,
   ApiOperation,
 } from "@nestjs/swagger";
-import { AuthGuard } from "src/guards/Auth.guard";
+import { AuthGuard } from "../../guards/Auth.guard";
 
 //* Signup user decorator
 export const SignUpUserDecorator = applyDecorators(

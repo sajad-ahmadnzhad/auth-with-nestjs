@@ -8,7 +8,7 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
-import { User } from "src/schemas/User.schema";
+import { User } from "../schemas/User.schema";
 import { Model } from "mongoose";
 import { SignupUserDto } from "./dto/signupUser.dto";
 import { AuthMessages } from "./auth.message";
@@ -19,7 +19,7 @@ import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { RedisCache } from "cache-manager-redis-yet";
 import { SigninUserDto } from "./dto/signinUser.dot";
 import { ForgotPasswordDto } from "./dto/forgotPassword.dto";
-import { Token } from "src/schemas/token.schema";
+import { Token } from "../schemas/token.schema";
 import { randomBytes } from "crypto";
 import { MailerService } from "@nestjs-modules/mailer";
 import { ResetPasswordDto } from "./dto/resetPassword.dto";

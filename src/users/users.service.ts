@@ -7,7 +7,7 @@ import {
 } from "@nestjs/common";
 import { UpdateUserDto } from "./dto/update-user.dto";
 import { InjectModel } from "@nestjs/mongoose";
-import { User } from "src/schemas/User.schema";
+import { User } from "../schemas/User.schema";
 import { Model } from "mongoose";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { RedisCache } from "cache-manager-redis-yet";

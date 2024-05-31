@@ -13,7 +13,7 @@ import {
 import { UsersService } from "./users.service";
 import { UpdateUserDto } from "./dto/update-user.dto";
 import { ApiCookieAuth, ApiTags } from "@nestjs/swagger";
-import { User } from "src/schemas/User.schema";
+import { User } from "../schemas/User.schema";
 import { IsValidObjectIdPipe } from "./pipes/isValidObjectId.pipe";
 import { UserDecorator } from "./decorators/currentUser.decorator";
 import { Express, Response } from "express";

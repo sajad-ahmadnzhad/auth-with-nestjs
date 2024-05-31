@@ -44,4 +44,4 @@ import { MailModule } from './mail/mail.module';
     { provide: APP_GUARD, useClass: ThrottlerGuard },
   ],
 })
-export class AppModule {}
+export class AppModule { }

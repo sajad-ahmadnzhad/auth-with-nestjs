@@ -11,7 +11,7 @@ import { JwtService } from "@nestjs/jwt";
 import { InjectModel } from "@nestjs/mongoose";
 import { Request } from "express";
 import { Model } from "mongoose";
-import { User } from "src/schemas/User.schema";
+import { User } from "../schemas/User.schema";
 
 @Injectable()
 export class AuthGuard implements CanActivate {

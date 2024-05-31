@@ -12,9 +12,9 @@ import {
   ApiQuery,
 } from "@nestjs/swagger";
 import { memoryStorage } from "multer";
-import { AuthGuard } from "src/guards/Auth.guard";
-import { IsAdminGuard } from "src/guards/isAdmin.guard";
-import { IsSuperAdminGuard } from "src/guards/isSuperAdmin.guard";
+import { AuthGuard } from "../../guards/Auth.guard";
+import { IsAdminGuard } from "../../guards/isAdmin.guard";
+import { IsSuperAdminGuard } from "../../guards/isSuperAdmin.guard";
 import { fileFilter } from "../utils/upload-file.utils";
 
 //* Get me decorator
